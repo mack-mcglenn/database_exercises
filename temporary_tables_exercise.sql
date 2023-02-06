@@ -27,10 +27,32 @@ and last_name as separate values*/
 select database();
 use sakila;
 describe sakila;
+drop table if exists payments;
 create temporary table oneil_2106.sakila_payment as select * from sakila.payment; 
 select * from payment;
 describe payment;
 
 /* Write the SQL necessary to transform the amount column such that it is stored as an integer representing the number of cents of the payment.
  For example, 1.99 should become 199.*/
- alter table payment modify 
+alter table payment add amount100 int not null;
+update table payment set amount100 = amount * 100;
+alter table payment drop column amount;
+
+/*Find out how the current average pay in each department compares to the overall current pay for
+ everyone at the company. For this comparison, you will calculate the z-score for each 
+salary. In terms of salary, what is the best department right now to work for? The worst? */
+
+#A: Average salary = $72,012. Standard deviation = $17,310
+use oneil_2106;
+
+select round(avg(salary)) as AvgSalary, round(std(salary)) as StdDevn from employees.salaries where to_date > now();
+drop table if exists Department_Averages;
+create temporary table ovaggs as select round(avg(salary)) as AvgSalary, round(std(salary)) as StdDevn from 
+employees.salaries where to_date > now();
+select * from ovaggs;
+
+create temporary table Department_Averages as select dept_name , round(avg(salary)) from employees
+join departments using (dept_no) join dept_emp using (emp_no) 
+join salaries using (emp_no)
+ where salaries.to_date > now() and dept_emp.to_date > now
+ group by dept_name;
